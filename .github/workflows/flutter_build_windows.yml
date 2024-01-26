@@ -6,7 +6,7 @@ on:
 
 
 jobs:
-  build_android:
+  build_windows:
     runs-on: windows-latest
 
     steps:

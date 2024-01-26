@@ -6,7 +6,7 @@ on:
 
 
 jobs:
-  build_windows:
+  build_android:
     runs-on: ubuntu-latest
 
     steps:
