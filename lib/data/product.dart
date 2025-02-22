@@ -208,10 +208,10 @@ class Product extends Equatable {
       cardSlot,
       memory,
       memoryOther,
-      rearCameraModules.toString(),
+      getRearCameraString(),
       rearCameraFeatures,
       rearCameraVideo,
-      frontCameraModules.toString(),
+      getFrontCameraString(),
       frontCameraFeatures,
       frontCameraVideo,
       loudSpeaker,
@@ -259,7 +259,7 @@ class Product extends Equatable {
 
     var size = RegExp(r'[\d.]+').firstMatch(displaySize)?.group(0) ?? '';
     if (size.isNotEmpty) {
-      result.write(size + '" ');
+      result.write('$size" ');
     }
 
     var resolution =
@@ -280,18 +280,18 @@ class Product extends Equatable {
               RegExp(r'\d+ x \d+').firstMatch(displayResolution)?.group(0) ??
                   '';
           if (temp.isNotEmpty) {
-            result.write(temp + ' ');
+            result.write('$temp ');
           }
           break;
       }
     }
 
     final informations = displayType.split(',');
-    result.write(informations[0] + ' ');
+    result.write('${informations[0]} ');
 
     for (var element in informations) {
       if (element.contains('Hz')) {
-        result.write('(' + element.trim() + ')');
+        result.write('(${element.trim()})');
       }
     }
 
@@ -320,7 +320,7 @@ class Product extends Equatable {
     if (chipset.contains('\n')) {
       StringBuffer result = StringBuffer();
       chipset.split('\n').forEach((element) {
-        result.write(_getOneChipset(element) + ' ');
+        result.write('${_getOneChipset(element)} ');
       });
       return result.toString();
     } else {
@@ -330,62 +330,96 @@ class Product extends Equatable {
 
   String _getCamera() {
     StringBuffer result = StringBuffer();
-    for (var element in rearCameraModules) {
-      var mp = RegExp(r'(\d+) MP').firstMatch(element)?.group(1);
-      if (mp != null) {
-        if (element == rearCameraModules.last) {
-          result.write(mp + '+');
-        } else {
-          result.write(mp + '/');
-        }
-      }
+
+    var rearCamString = rearCameraModules
+        .map((e) => RegExp(r'([\d\.]+)( )?MP').hasMatch(e)
+            ? '${RegExp(r'([\d\.]+)( )?MP').firstMatch(e)?.group(1)}MP'
+            : RegExp(r',').hasMatch(e)
+                ? RegExp(r'([^,]*),').firstMatch(e)?.group(1)
+                : e)
+        .toList()
+        .join("/");
+
+    var frontCamString = frontCameraModules
+        .map((e) => RegExp(r'([\d\.]+)( )?MP').hasMatch(e)
+            ? '${RegExp(r'([\d\.]+)( )?MP').firstMatch(e)?.group(1)}MP'
+            : RegExp(r',').hasMatch(e)
+                ? RegExp(r'([^,]*),').firstMatch(e)?.group(1)
+                : e)
+        .toList()
+        .join("/");
+
+    if (frontCamString.isNotEmpty && rearCamString.isNotEmpty) {
+      result.write('$rearCamString+$frontCamString');
+    } else if (rearCamString.isNotEmpty) {
+      result.write(rearCamString);
+    } else if (frontCamString.isNotEmpty) {
+      result.write('Front $frontCamString');
     }
-    for (var element in frontCameraModules) {
-      var mp = RegExp(r'(\d+) MP').firstMatch(element)?.group(1);
-      if (mp != null) {
-        if (element == frontCameraModules.last) {
-          result.write(mp + 'MP');
-        } else {
-          result.write(mp + '/');
-        }
-      }
-    }
+
     return result.toString();
   }
 
   String _getMemory() {
     StringBuffer result = StringBuffer();
-    memory.split(RegExp(', ?')).forEach((element) {
-      var mem = RegExp(r'(\d+)GB (\d+)GB RAM').firstMatch(element);
-      if (mem != null) {
-        result.write(mem.group(2)! + '+' + mem.group(1)! + 'GB\r\n');
-      } else {
-        result.write(element);
-      }
-    });
+    // var temp = memory.split(',');
+
+    // for (var e in temp) {
+    //   if (RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM')
+    //       .hasMatch(e)) {
+    //     print(
+    //         '${RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM').firstMatch(e)?.group(2)}+${RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM').firstMatch(e)?.group(1)}');
+    //   } else {
+    //     print(e);
+    //   }
+    // }
+
+    result.write(memory
+        .split(',')
+        .map((e) => RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM')
+                .hasMatch(e)
+            ? '${RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM').firstMatch(e)?.group(2)}+${RegExp(r'([\d\.]+[G|M|K]B)[ ]*([\d\.]+[G|M|K]B)[ ]*RAM').firstMatch(e)?.group(1)}'
+            : e)
+        .toList()
+        .join('/'));
+
+    // result.write(memory
+    //     .split(RegExp(',[ ]?'))
+    //     .map((e) => RegExp(r'(\d+)GB (\d+)GB RAM').hasMatch(e)
+    //         ? RegExp(r'(\d+)GB (\d+)GB RAM').firstMatch(e)
+    //         : e)
+    //     .toList()
+    //     .join('/'));
+
     return result.toString().trim();
   }
 
   String _getBattery() {
     StringBuffer result = StringBuffer();
-    var bat = RegExp(r'([\d\.]+) mAh').firstMatch(battery)?.group(1);
+    var bat = RegExp(r'([\d\.]+[ ]*)mAh').firstMatch(battery)?.group(1);
     if (bat != null) {
-      result.write(bat + 'mAh');
+      result.write('${bat}mAh');
     } else {
       result.write(battery);
     }
 
-    var chg = RegExp(r'Fast charging (\d+)W').firstMatch(charging)?.group(1);
-    var wchg = RegExp(r'[w|W]ireless charging ([\d\.]+)W')
-        .firstMatch(charging)
-        ?.group(1);
-    if (chg != null && wchg != null) {
-      result.write('(' + chg + 'W/' + wchg + 'W)');
-    } else if (chg != null) {
-      result.write('(' + chg + 'W)');
-    } else if (charging.isNotEmpty) {
-      result.write(charging);
+    var chg = charging
+        .split('\n')
+        .map((e) => RegExp(r'Fast charging ([\d\.]+[ ]?)W').hasMatch(e)
+            ? '${RegExp(r'Fast charging ([\d\.]+[ ]?)W').firstMatch(e)?.group(1)}W'
+            : RegExp(r'([\d\.]+[ ]?)W[ ]*[w|W]ired').hasMatch(e)
+                ? '${RegExp(r'([\d\.]+[ ]?)W[ ]*wired').firstMatch(e)?.group(1)}W'
+                : RegExp(r'[w|W]ireless charging ([\d\.]+)W').hasMatch(e)
+                    ? '${RegExp(r'[w|W]ireless charging ([\d\.]+[ ]?)W').firstMatch(e)?.group(1)}W wireless'
+                    : RegExp(r'([\d\.]+[ ]?)W[ ]*[w|W]ireless').hasMatch(e)
+                        ? '${RegExp(r'([\d\.]+[ ]?)W[ ]*wireless').firstMatch(e)?.group(1)}W wireless'
+                        : e)
+        .toList()
+        .join('/');
+    if (chg.isNotEmpty) {
+      result.write(' ($chg)');
     }
+
     return result.toString().trim();
   }
 

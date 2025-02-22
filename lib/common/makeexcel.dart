@@ -20,6 +20,7 @@ Future<String> makeExcel(
   styleNormal.borders.all.lineStyle = LineStyle.thin;
   styleNormal.hAlign = HAlignType.center;
   styleNormal.vAlign = VAlignType.center;
+  styleNormal.wrapText = true;
 
   int iRow = 1;
   int iCol = 1;

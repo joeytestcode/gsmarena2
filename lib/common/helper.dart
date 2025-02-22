@@ -12,10 +12,10 @@ Future<String> _getDocumentPath() async {
   final directoryPath = directory.path;
   if (directoryPath.contains('/') &&
       directoryPath[directoryPath.length - 1] != '/') {
-    return directoryPath + '/';
+    return '$directoryPath/';
   } else if (directoryPath.contains('\\') &&
       directoryPath[directoryPath.length - 1] != '\\') {
-    return directoryPath + '\\';
+    return '$directoryPath\\';
   }
   return directoryPath;
 }

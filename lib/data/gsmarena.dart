@@ -205,7 +205,7 @@ class GSMarena {
         ? 'Bluetooth'
         : data == 'No'
             ? ''
-            : 'Bluetooth' + data;
+            : 'Bluetooth$data';
 
     product.gps =
         (document.querySelector('[data-spec="gps"]')?.text.trim() ?? '')
